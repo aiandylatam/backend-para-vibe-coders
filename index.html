@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backend para Vibe Coders</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #a8ff3e;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --card: #14141f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  .header {
+    position: relative;
+    z-index: 1;
+    padding: 48px 24px 32px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    margin-bottom: 20px;
+    animation: pulse-border 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { border-color: var(--accent); box-shadow: 0 0 0 rgba(0,212,255,0); }
+    50% { border-color: var(--accent); box-shadow: 0 0 12px rgba(0,212,255,0.3); }
+  }
+
+  .header h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .header h1 span { color: var(--accent); }
+
+  .header .subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  .header .subtitle strong { color: var(--accent2); font-style: normal; }
+
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .stat-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+  }
+
+  /* DIVIDER */
+  .divider {
+    max-width: 800px;
+    margin: 0 auto 32px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .divider hr {
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* INDEX VIEW */
+  #index-view {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .topic-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: rgba(0,212,255,0.05);
+    transition: width 0.3s ease;
+  }
+
+  .topic-card:hover::before { width: 100%; }
+  .topic-card:hover { border-color: var(--accent); transform: translateX(4px); }
+  .topic-card:hover .arrow { transform: translateX(4px); color: var(--accent); }
+
+  .topic-icon {
+    font-size: 1.5rem;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .topic-info { flex: 1; }
+
+  .topic-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .topic-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .topic-desc {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .arrow {
+    font-size: 1.2rem;
+    color: var(--muted);
+    transition: all 0.2s ease;
+    min-width: 20px;
+  }
+
+  /* Different accent colors per topic */
+  .topic-card:nth-child(2) { border-left-color: var(--accent2); }
+  .topic-card:nth-child(3) { border-left-color: var(--accent3); }
+  .topic-card:nth-child(4) { border-left-color: #b06bff; }
+  .topic-card:nth-child(5) { border-left-color: var(--accent); }
+  .topic-card:nth-child(6) { border-left-color: var(--accent2); }
+  .topic-card:nth-child(7) { border-left-color: var(--accent3); }
+
+  /* LESSON VIEW */
+  #lesson-view {
+    display: none;
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    margin-bottom: 28px;
+    transition: color 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .back-btn:hover { color: var(--accent); }
+
+  .lesson-header {
+    margin-bottom: 28px;
+  }
+
+  .lesson-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .lesson-title {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+
+  .lesson-content {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 28px;
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  .lesson-content h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 24px 0 12px;
+  }
+
+  .lesson-content h3:first-child { margin-top: 0; }
+
+  .lesson-content p {
+    color: #c8c8d8;
+    margin-bottom: 14px;
+  }
+
+  .lesson-content strong { color: var(--text); }
+
+  .lesson-content code {
+    font-family: 'Space Mono', monospace;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.15);
+    padding: 2px 6px;
+    font-size: 0.85em;
+    color: var(--accent);
+    border-radius: 2px;
+  }
+
+  .analogy-box {
+    background: rgba(255,107,53,0.08);
+    border-left: 3px solid var(--accent2);
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #d8a898;
+  }
+
+  .analogy-box strong {
+    color: var(--accent2);
+    display: block;
+    margin-bottom: 6px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .key-points {
+    background: rgba(168,255,62,0.05);
+    border: 1px solid rgba(168,255,62,0.15);
+    padding: 16px 20px;
+    margin-top: 24px;
+  }
+
+  .key-points h4 {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 12px;
+  }
+
+  .key-points ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .key-points ul li {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #b8d898;
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .key-points ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent3);
+  }
+
+  /* NAV BUTTONS */
+  .nav-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .nav-btn.primary {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* PROGRESS */
+  .progress-bar {
+    max-width: 800px;
+    margin: 0 auto 28px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-track {
+    height: 2px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px rgba(0,212,255,0.5);
+  }
+
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* COMPLETION */
+  .completion-banner {
+    display: none;
+    background: rgba(168,255,62,0.08);
+    border: 1px solid rgba(168,255,62,0.3);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .completion-banner h3 {
+    font-weight: 800;
+    color: var(--accent3);
+    margin-bottom: 6px;
+  }
+
+  .completion-banner p {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* FOOTER */
+  .footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 32px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  /* ANIMATIONS */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: fadeSlideIn 0.35s ease forwards; }
+
+  /* VISITED TOPICS */
+  .topic-card.visited .topic-num::after {
+    content: ' ✓';
+    color: var(--accent3);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="badge">Curso Ejecutivo · aiAndy</div>
+  <h1>Backend para<br><span>Vibe Coders</span></h1>
+  <p class="subtitle">
+    No necesitas ser dev. Pero sí necesitas saber de qué hablan.<br>
+    <strong>7 conceptos. Sin rodeos. Sin condescendencia.</strong>
+  </p>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-dot"></span>7 temas</div>
+    <div class="stat"><span class="stat-dot"></span>~15 min de lectura</div>
+    <div class="stat"><span class="stat-dot"></span>100% gratuito</div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<div class="progress-bar">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-label">
+    <span id="progressText">0 de 7 temas vistos</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<!-- INDEX -->
+<div id="index-view">
+  <div class="section-label">// Elige un tema para empezar</div>
+  <div class="topic-card" onclick="openLesson(0)">
+    <div class="topic-icon">🏗️</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 01</div>
+      <div class="topic-title">¿Qué es el backend y por qué existe?</div>
+      <div class="topic-desc">La diferencia entre lo que ves y lo que pasa por debajo</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+  <div class="topic-card" onclick="openLesson(1)">
+    <div class="topic-icon">🔌</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 02</div>
+      <div class="topic-title">¿Qué es un endpoint?</div>
+      <div class="topic-desc">La puerta de entrada a cualquier servidor</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+  <div class="topic-card" onclick="openLesson(2)">
+    <div class="topic-icon">🔑</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 03</div>
+      <div class="topic-title">API Keys: qué son y por qué son peligrosas</div>
+      <div class="topic-desc">La credencial que nunca debes exponer en tu código</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+  <div class="topic-card" onclick="openLesson(3)">
+    <div class="topic-icon">⚡</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 04</div>
+      <div class="topic-title">Frontend vs Backend: la separación real</div>
+      <div class="topic-desc">Por qué Claude no puede gestionar el back desde el front</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+  <div class="topic-card" onclick="openLesson(4)">
+    <div class="topic-icon">🗄️</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 05</div>
+      <div class="topic-title">Bases de datos: lo mínimo que necesitas saber</div>
+      <div class="topic-desc">Dónde viven los datos de tu app y cómo se organizan</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+  <div class="topic-card" onclick="openLesson(5)">
+    <div class="topic-icon">☁️</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 06</div>
+      <div class="topic-title">¿Dónde vive el backend? Local vs Producción</div>
+      <div class="topic-desc">La diferencia entre "me funciona en mi PC" y el mundo real</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+  <div class="topic-card" onclick="openLesson(6)">
+    <div class="topic-icon">🧩</div>
+    <div class="topic-info">
+      <div class="topic-num">TEMA 07</div>
+      <div class="topic-title">Microservicios vs Monolito: ¿qué elijo?</div>
+      <div class="topic-desc">Cuándo aplica cada arquitectura y cómo decirlo con propiedad</div>
+    </div>
+    <div class="arrow">→</div>
+  </div>
+</div>
+
+<!-- LESSON VIEW -->
+<div id="lesson-view">
+  <button class="back-btn" onclick="goBack()">← VOLVER AL ÍNDICE</button>
+  <div id="completionBanner" class="completion-banner">
+    <h3>🎉 ¡Curso completado!</h3>
+    <p>Ya sabes más de backend que el 80% de los vibe coders. Ahora puedes tener conversaciones reales con tu IA.</p>
+  </div>
+  <div class="lesson-header">
+    <div class="lesson-num" id="lessonNum"></div>
+    <div class="lesson-title" id="lessonTitle"></div>
+  </div>
+  <div class="lesson-content animate-in" id="lessonContent"></div>
+  <div class="nav-buttons">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← ANTERIOR</button>
+    <button class="nav-btn primary" id="nextBtn" onclick="navigate(1)">SIGUIENTE →</button>
+  </div>
+</div>
+
+<div class="footer">
+  Creado por <a href="https://www.tiktok.com/@aiandyofi">@aiandyofi</a> · Backend para Vibe Coders · 2025
+</div>
+
+<script>
+const lessons = [
+  {
+    num: "TEMA 01 / 07",
+    title: "¿Qué es el backend y por qué existe?",
+    content: `
+      <h3>// La analogía del restaurante</h3>
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        Cuando vas a un restaurante, ves el salón, el menú y al mesero. Eso es el <strong>frontend</strong> — lo que el cliente toca y ve. La cocina, los ingredientes, las recetas y el chef que hace el trabajo real: eso es el <strong>backend</strong>. El cliente nunca entra a la cocina, pero sin ella no hay comida.
+      </div>
+
+      <h3>// ¿Qué hace exactamente el backend?</h3>
+      <p>El backend es el software que corre en un servidor — una computadora que está encendida 24/7 esperando peticiones. Su trabajo es procesar lógica, acceder a bases de datos, ejecutar reglas de negocio y devolver datos al frontend.</p>
+      <p>Cuando haces login en Instagram, el frontend captura tu usuario y contraseña. El backend los verifica contra su base de datos, genera un token de sesión y te responde. El frontend solo muestra el resultado.</p>
+
+      <h3>// ¿Por qué no meter todo en el frontend?</h3>
+      <p>Porque el frontend corre en el navegador del usuario — y el usuario puede ver y modificar ese código. Si tu lógica de negocio, tus API keys o tus reglas de precios viven en el frontend, cualquiera las puede ver. El backend es el espacio seguro y controlado.</p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>El backend corre en un servidor, no en el navegador del usuario</li>
+          <li>Maneja lógica, seguridad y acceso a datos</li>
+          <li>El frontend es la interfaz; el backend es el cerebro</li>
+          <li>Sin backend, tu app no tiene memoria ni seguridad real</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    num: "TEMA 02 / 07",
+    title: "¿Qué es un endpoint?",
+    content: `
+      <h3>// La puerta específica del servidor</h3>
+      <p>Un <strong>endpoint</strong> es una URL específica en tu servidor que hace una cosa concreta cuando alguien la llama. No es el servidor completo — es una dirección dentro de él.</p>
+
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        Un edificio de oficinas es tu servidor. Cada departamento es un endpoint. Si necesitas RRHH, vas al piso 3, oficina 301. Si necesitas contabilidad, vas al piso 5, oficina 502. Llamar al edificio en general no sirve — necesitas la dirección exacta del departamento correcto.
+      </div>
+
+      <h3>// Cómo se ve un endpoint real</h3>
+      <p>Imagina una app de usuarios. Podría tener estos endpoints:</p>
+      <p><code>GET /usuarios</code> → devuelve la lista de todos los usuarios</p>
+      <p><code>GET /usuarios/42</code> → devuelve el usuario con ID 42</p>
+      <p><code>POST /usuarios</code> → crea un usuario nuevo</p>
+      <p><code>DELETE /usuarios/42</code> → elimina el usuario 42</p>
+
+      <h3>// GET, POST, PUT, DELETE — los verbos</h3>
+      <p>Los endpoints tienen un <strong>verbo HTTP</strong> que indica la intención. <code>GET</code> es leer. <code>POST</code> es crear. <code>PUT</code> o <code>PATCH</code> es actualizar. <code>DELETE</code> es eliminar. El mismo URL puede comportarse diferente según el verbo.</p>
+
+      <h3>// Cuando Claude genera un backend</h3>
+      <p>Si le pides a Claude que te haga una API, está generando endpoints. Cada función que define es una puerta de entrada. Tu trabajo como vibe coder es saber qué puertas se abrieron, hacia dónde llevan y cuáles necesitan seguridad.</p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>Un endpoint = una URL + un verbo HTTP + una acción específica</li>
+          <li>GET lee, POST crea, PUT/PATCH actualiza, DELETE elimina</li>
+          <li>Tu API es la colección de todos tus endpoints</li>
+          <li>Saber los endpoints de tu app = saber qué puede hacer tu servidor</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    num: "TEMA 03 / 07",
+    title: "API Keys: qué son y por qué son peligrosas",
+    content: `
+      <h3>// La credencial que te identifica</h3>
+      <p>Una <strong>API key</strong> es una cadena de texto — larga, aleatoria — que identifica quién está haciendo una petición a un servicio externo. Cuando usas la API de OpenAI, de Stripe, de Google Maps, cada llamada lleva tu API key. El servicio la lee y sabe que eres tú, cuánto cobrarte y qué permisos tienes.</p>
+
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        Una API key es como la tarjeta de crédito de tu aplicación. Si alguien la roba, puede hacer llamadas que le cuestan dinero a ti. Si la expones en público, cualquiera puede usarla hasta agotar tu límite o vaciar tu cuenta.
+      </div>
+
+      <h3>// El error más común del vibe coder</h3>
+      <p>Poner la API key directamente en el código del frontend o subirla a GitHub. Si tu clave aparece en el código JavaScript que corre en el navegador, cualquier usuario puede verla abriendo las DevTools. Si está en GitHub, los bots la escanean en minutos.</p>
+
+      <h3>// ¿Dónde deben vivir las API keys?</h3>
+      <p>Siempre en el <strong>backend</strong>, en variables de entorno — nunca en el código fuente. Una variable de entorno es una configuración que el servidor lee al arrancar pero que no está escrita en el código. Se ve así en el servidor: <code>OPENAI_KEY=sk-abc123...</code></p>
+      <p>El frontend le pide al backend que haga la llamada. El backend usa la key en secreto. El frontend nunca toca la key.</p>
+
+      <h3>// Cómo pedirle esto bien a Claude</h3>
+      <p>En lugar de "hazme el código para llamar a OpenAI", di: "genera el endpoint backend que llame a OpenAI usando la key desde una variable de entorno, y que el frontend solo llame a mi propio endpoint". Esa instrucción produce código seguro.</p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>API key = identidad de tu app ante servicios externos</li>
+          <li>Nunca en el frontend, nunca en GitHub, nunca en el código fuente</li>
+          <li>Siempre en variables de entorno del servidor (.env)</li>
+          <li>El frontend llama a tu backend; tu backend llama al servicio externo</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    num: "TEMA 04 / 07",
+    title: "Frontend vs Backend: la separación real",
+    content: `
+      <h3>// No es solo una cuestión de dónde corre el código</h3>
+      <p>La separación frontend/backend no es arbitraria — es arquitectónica. Cada uno tiene responsabilidades que no se pueden intercambiar sin consecuencias de seguridad o rendimiento.</p>
+
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        El frontend es el mostrador de un banco. El backend es la bóveda. El cajero (frontend) te atiende y muestra información. Pero nunca te deja pasar a la bóveda directamente. Hace solicitudes al sistema interno (backend) que decide qué mostrarte y qué operaciones autoriza.
+      </div>
+
+      <h3>// ¿Qué va en el frontend?</h3>
+      <p>Todo lo visual: HTML, CSS, JavaScript que corre en el navegador. Formularios, botones, animaciones, la lógica de qué mostrar según lo que responde el servidor. El frontend no tiene acceso a la base de datos. No guarda secretos. Asume que el usuario puede ver todo lo que está ahí.</p>
+
+      <h3>// ¿Qué va en el backend?</h3>
+      <p>Autenticación real, lógica de negocio, acceso a la base de datos, llamadas a servicios externos con credenciales, validaciones de seguridad, procesamiento de pagos. Todo lo que no debe ser visible ni manipulable por el usuario.</p>
+
+      <h3>// El error clásico del vibe coder con Claude</h3>
+      <p>Decirle "construye una app que haga X" y que Claude genere todo en el frontend. El código corre, se ve bien, pero las reglas de negocio son visibles y modificables, las keys están expuestas y cualquier usuario que sepa usar DevTools puede saltarse la validación. La app funciona en local pero es insegura en producción.</p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>Frontend: lo que el usuario ve y puede modificar</li>
+          <li>Backend: la lógica que el usuario nunca debe tocar</li>
+          <li>Validar en el frontend es cortesía; validar en el backend es seguridad</li>
+          <li>Si solo validas en el frontend, no estás validando realmente</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    num: "TEMA 05 / 07",
+    title: "Bases de datos: lo mínimo que necesitas saber",
+    content: `
+      <h3>// ¿Dónde viven los datos?</h3>
+      <p>Tu app genera datos: usuarios, pedidos, mensajes, transacciones. Esos datos no viven en el código — viven en una <strong>base de datos</strong>, que es un sistema especializado en guardar, organizar y recuperar información de forma eficiente y duradera.</p>
+
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        Si tu app fuera una empresa, el código sería los empleados y los procesos. La base de datos sería el archivo físico donde se guardan todos los expedientes. Los empleados trabajan con los expedientes, pero los expedientes viven en el archivo.
+      </div>
+
+      <h3>// Relacionales vs No relacionales</h3>
+      <p><strong>SQL (relacionales):</strong> datos organizados en tablas con columnas y filas, como Excel pero poderoso. MySQL, PostgreSQL. Ideal cuando los datos tienen estructura fija y relaciones claras. Una tabla de usuarios, una de pedidos, una de productos.</p>
+      <p><strong>NoSQL (no relacionales):</strong> datos en formato flexible, como documentos JSON. MongoDB, Firebase. Ideal para datos variables, no estructurados, o cuando necesitas escalar rápido sin esquema rígido.</p>
+
+      <h3>// Lo que Claude puede y no puede hacer</h3>
+      <p>Claude puede generar el esquema de tu base de datos, las queries SQL, el código para conectarse y hacer operaciones. Lo que no puede hacer es gestionar la base de datos por ti en producción — eso requiere un servidor de base de datos real, configurado y asegurado.</p>
+
+      <h3>// Opciones para vibe coders</h3>
+      <p><strong>Supabase</strong> o <strong>PlanetScale</strong>: bases de datos en la nube con interfaz visual. Conectas tu app y listo. <strong>Firebase</strong>: base de datos de Google, muy fácil para prototipos. <strong>SQLite</strong>: base de datos en un archivo, perfecta para proyectos locales o pequeños.</p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>Los datos de tu app viven en una base de datos, no en el código</li>
+          <li>SQL para estructura fija y relaciones; NoSQL para flexibilidad</li>
+          <li>Supabase o Firebase son buenas opciones para empezar rápido</li>
+          <li>Sin base de datos, tu app olvida todo al reiniciarse</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    num: "TEMA 06 / 07",
+    title: "¿Dónde vive el backend? Local vs Producción",
+    content: `
+      <h3>// "En mi computadora sí funciona"</h3>
+      <p>El error más clásico de cualquier developer — vibe coder o no — es confundir el entorno local con el entorno de producción. Son dos mundos distintos con reglas distintas.</p>
+
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        Local es como ensayar una obra de teatro en tu sala. Producción es estrenarla en el teatro con 500 personas pagando. En tu sala controlas todo: la temperatura, el ruido, las sillas. En el teatro real hay factores que no controlabas en el ensayo.
+      </div>
+
+      <h3>// Entorno local</h3>
+      <p>Cuando Claude genera un backend y lo corres con <code>node server.js</code> o <code>python app.py</code> en tu computadora, está corriendo en <strong>local</strong>. Solo tú puedes accederlo (en <code>localhost:3000</code> o similar). Sirve para desarrollar y probar, pero nadie más puede usarlo.</p>
+
+      <h3>// Entorno de producción</h3>
+      <p><strong>Producción</strong> es el servidor real en internet donde vive tu app cuando está lista para usuarios reales. Ese servidor tiene una IP pública o un dominio, está encendido 24/7, y tiene que aguantar múltiples usuarios simultáneos.</p>
+
+      <h3>// Opciones para desplegar (deploy) tu backend</h3>
+      <p><strong>Railway</strong> o <strong>Render</strong>: las más fáciles para vibe coders. Conectas tu repositorio de GitHub y el servicio despliega automáticamente. <strong>Vercel</strong>: excelente para frontend y funciones serverless. <strong>AWS / Google Cloud / Azure</strong>: más potentes pero más complejos — para cuando ya escala.</p>
+
+      <h3>// Las variables de entorno en producción</h3>
+      <p>En local usas un archivo <code>.env</code> para tus API keys. En producción, configuras esas variables directamente en el panel de tu plataforma de hosting. Nunca subas tu <code>.env</code> a GitHub.</p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>Local = solo en tu computadora, para desarrollo</li>
+          <li>Producción = servidor real en internet, para usuarios reales</li>
+          <li>Railway o Render son el primer paso para deploy fácil</li>
+          <li>Las variables de entorno van en el panel del hosting, nunca en el repo</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    num: "TEMA 07 / 07",
+    title: "Microservicios vs Monolito: ¿qué elijo?",
+    content: `
+      <h3>// Dos formas de organizar un backend</h3>
+      <p>Cuando tu app crece, surge la pregunta de arquitectura: ¿construyo todo en un solo sistema o lo divido en piezas independientes? Esa es la diferencia entre monolito y microservicios.</p>
+
+      <div class="analogy-box">
+        <strong>Piénsalo así</strong>
+        Un monolito es una navaja suiza: un solo objeto que hace todo. Fácil de llevar, todo en un lugar. Los microservicios son un set de herramientas especializadas: un cuchillo, unas tijeras, un desarmador. Cada uno hace su cosa mejor, pero coordinarlos requiere más esfuerzo.
+      </div>
+
+      <h3>// Monolito</h3>
+      <p>Un solo servidor que maneja todo: usuarios, pagos, notificaciones, reportes. Todo el código vive junto, se despliega junto, escala junto. <strong>Ventajas:</strong> simple de desarrollar y desplegar, especialmente al inicio. <strong>Desventajas:</strong> cuando escala, un bug en notificaciones puede tumbar todo el sistema.</p>
+
+      <h3>// Microservicios</h3>
+      <p>Cada función del sistema es un servicio independiente: un servicio de usuarios, uno de pagos, uno de notificaciones. Se comunican entre sí por APIs. <strong>Ventajas:</strong> puedes escalar solo la parte que lo necesita, un fallo no tira todo. <strong>Desventajas:</strong> mucho más complejo de gestionar, requiere infraestructura adicional.</p>
+
+      <h3>// ¿Qué elegir como vibe coder?</h3>
+      <p><strong>Empieza con monolito.</strong> Siempre. La complejidad de los microservicios solo se justifica cuando tienes equipos separados trabajando en distintas partes del sistema o cuando identificaste un cuello de botella específico que necesita escalar independientemente. Para un MVP o un proyecto pequeño, el monolito es la respuesta correcta.</p>
+      <p>Cuando alguien te diga "deberías usar microservicios", la pregunta correcta es: <em>¿qué parte específica necesitas escalar independientemente?</em></p>
+
+      <div class="key-points">
+        <h4>// Puntos clave</h4>
+        <ul>
+          <li>Monolito = todo junto, simple, ideal para empezar</li>
+          <li>Microservicios = partes independientes, complejo, para escala real</li>
+          <li>El 90% de los proyectos de vibe coders no necesitan microservicios</li>
+          <li>Empieza monolítico; divide cuando el dolor sea real, no hipotético</li>
+        </ul>
+      </div>
+    `
+  }
+];
+
+let currentLesson = 0;
+let visited = new Set();
+
+function updateProgress() {
+  const pct = Math.round((visited.size / lessons.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${visited.size} de ${lessons.length} temas vistos`;
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  if (visited.size === lessons.length) {
+    document.getElementById('completionBanner').style.display = 'block';
+  }
+}
+
+function openLesson(idx) {
+  currentLesson = idx;
+  visited.add(idx);
+
+  // Mark card as visited
+  const cards = document.querySelectorAll('.topic-card');
+  cards[idx].classList.add('visited');
+
+  const lesson = lessons[idx];
+  document.getElementById('lessonNum').textContent = lesson.num;
+  document.getElementById('lessonTitle').textContent = lesson.title;
+  document.getElementById('lessonContent').innerHTML = lesson.content;
+
+  document.getElementById('prevBtn').disabled = idx === 0;
+  document.getElementById('nextBtn').disabled = idx === lessons.length - 1;
+  document.getElementById('nextBtn').textContent = idx === lessons.length - 1 ? 'ÚLTIMO TEMA' : 'SIGUIENTE →';
+
+  document.getElementById('index-view').style.display = 'none';
+  document.getElementById('lesson-view').style.display = 'block';
+
+  document.getElementById('lessonContent').classList.remove('animate-in');
+  void document.getElementById('lessonContent').offsetWidth;
+  document.getElementById('lessonContent').classList.add('animate-in');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress();
+}
+
+function goBack() {
+  document.getElementById('lesson-view').style.display = 'none';
+  document.getElementById('index-view').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navigate(dir) {
+  const next = currentLesson + dir;
+  if (next >= 0 && next < lessons.length) {
+    openLesson(next);
+  }
+}
+</script>
+</body>
+</html>
